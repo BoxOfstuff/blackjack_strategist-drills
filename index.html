@@ -69,19 +69,11 @@
         <p id="feedback"></p>
     </main>
     <script>
-        let actions = ['Hit', 'Stand', 'Double', 'Split', 'Surrender'];
+        const playerActions = ['Hit', 'Stand', 'Double', 'Split', 'Surrender'];
         let currentPlayerHand;
         let currentDealerCard;
         let correctAction;
         let selectedAlready = false;
-
-        const simpleBasicStrategy = {
-            '5-8': 'Hit',
-            '9': 'Double',
-            '10-11': 'Double',
-            '12-16': 'Stand',
-            '17-21': 'Stand'
-        };
 
         function generateRandomCard() {
             const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
@@ -108,20 +100,63 @@
         }
 
         function determineCorrectAction(playerHand, dealerCard) {
-            // Simplified example logic for determining correct action
-            // Compute player hand value
             const cards = playerHand.split(', ');
-            let totalValue = cards.reduce((acc, card) => acc + getCardValue(card), 0);
+            const playerValues = cards.map(getCardValue);
+            const sum = playerValues.reduce((a, b) => a + b, 0);
+            const hasAce = cards.includes('A');
+            const dealerValue = getCardValue(dealerCard);
 
-            // Look up the value in the strategy chart
-            let correct = 'Hit';  // default to Hit if not handled explicitly
-            if (totalValue <= 8) correct = 'Hit';
-            if (totalValue === 9 && getCardValue(dealerCard) >= 3 && getCardValue(dealerCard) <= 6) correct = 'Double';
-            if ([10, 11].includes(totalValue)) correct = 'Double';
-            if (totalValue >= 12 && totalValue <= 16 && getCardValue(dealerCard) >= 2 && getCardValue(dealerCard) <= 6) correct = 'Stand';
-            if (totalValue >= 17) correct = 'Stand';
+            // Full strategy logic
+            if (cards[0] === cards[1]) {
+                return pairStrategy(cards[0], dealerValue);
+            }
 
-            return correct;
+            if (sum >= 17) return 'Stand';
+            if (sum <= 8) return 'Hit';
+
+            if (hasAce && sum <= 18) {
+                if (sum === 18 && (dealerValue >= 3 && dealerValue <= 6)) return 'Double';
+                return 'Hit';
+            }
+
+            switch (sum) {
+                case 9:
+                    return (dealerValue >= 3 && dealerValue <= 6) ? 'Double' : 'Hit';
+                case 10:
+                case 11:
+                    return (dealerValue < 10) ? 'Double' : 'Hit';
+                case 12:
+                    return (dealerValue >= 4 && dealerValue <= 6) ? 'Stand' : 'Hit';
+                case 13:
+                case 14:
+                case 15:
+                case 16:
+                    return (dealerValue >= 2 && dealerValue <= 6) ? 'Stand' : 'Hit';
+                default:
+                    return 'Stand';
+            }
+        }
+
+        function pairStrategy(card, dealerValue) {
+            // Strategy for pairs (simplified)
+            const value = getCardValue(card);
+            switch (value) {
+                case 8:
+                case 11:
+                    return 'Split';
+                case 9:
+                    return (dealerValue === 7 || dealerValue >= 10) ? 'Stand' : 'Split';
+                case 7:
+                    return (dealerValue <= 7) ? 'Split' : 'Hit';
+                case 6:
+                    return (dealerValue <= 6) ? 'Split' : 'Hit';
+                case 5:
+                    return (dealerValue <= 9) ? 'Double' : 'Hit';
+                case 4:
+                    return (dealerValue === 5 || dealerValue === 6) ? 'Split' : 'Hit';
+                default:
+                    return 'Hit';
+            }
         }
 
         function selectAction(action) {
