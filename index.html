@@ -69,7 +69,6 @@
         <p id="feedback"></p>
     </main>
     <script>
-        const playerActions = ['Hit', 'Stand', 'Double', 'Split', 'Surrender'];
         let currentPlayerHand;
         let currentDealerCard;
         let correctAction;
@@ -106,56 +105,58 @@
             const hasAce = cards.includes('A');
             const dealerValue = getCardValue(dealerCard);
 
-            // Full strategy logic
             if (cards[0] === cards[1]) {
                 return pairStrategy(cards[0], dealerValue);
             }
 
-            if (sum >= 17) return 'Stand';
-            if (sum <= 8) return 'Hit';
+            if (hasAce && sum <= 21) {
+                return softTotalStrategy(sum, dealerValue);
+            }
 
-            if (hasAce && sum <= 18) {
-                if (sum === 18 && (dealerValue >= 3 && dealerValue <= 6)) return 'Double';
+            return hardTotalStrategy(sum, dealerValue);
+        }
+
+        function hardTotalStrategy(sum, dealerValue) {
+            if (sum <= 8) return 'Hit';
+            if (sum === 9) return (dealerValue >= 3 && dealerValue <= 6) ? 'Double' : 'Hit';
+            if (sum === 10) return (dealerValue <= 9) ? 'Double' : 'Hit';
+            if (sum === 11) return 'Double';
+            if (sum === 12) return (dealerValue >= 4 && dealerValue <= 6) ? 'Stand' : 'Hit';
+            if (sum >= 13 && sum <= 16) return (dealerValue <= 6) ? 'Stand' : 'Hit';
+            return 'Stand';
+        }
+
+        function softTotalStrategy(sum, dealerValue) {
+            if (sum <= 17) return 'Hit';
+            if (sum === 18) {
+                if (dealerValue >= 3 && dealerValue <= 6) return 'Double';
+                if (dealerValue === 2 || dealerValue === 7 || dealerValue === 8) return 'Stand';
                 return 'Hit';
             }
-
-            switch (sum) {
-                case 9:
-                    return (dealerValue >= 3 && dealerValue <= 6) ? 'Double' : 'Hit';
-                case 10:
-                case 11:
-                    return (dealerValue < 10) ? 'Double' : 'Hit';
-                case 12:
-                    return (dealerValue >= 4 && dealerValue <= 6) ? 'Stand' : 'Hit';
-                case 13:
-                case 14:
-                case 15:
-                case 16:
-                    return (dealerValue >= 2 && dealerValue <= 6) ? 'Stand' : 'Hit';
-                default:
-                    return 'Stand';
-            }
+            return 'Stand';
         }
 
         function pairStrategy(card, dealerValue) {
-            // Strategy for pairs (simplified)
-            const value = getCardValue(card);
-            switch (value) {
-                case 8:
-                case 11:
-                    return 'Split';
-                case 9:
-                    return (dealerValue === 7 || dealerValue >= 10) ? 'Stand' : 'Split';
-                case 7:
-                    return (dealerValue <= 7) ? 'Split' : 'Hit';
-                case 6:
-                    return (dealerValue <= 6) ? 'Split' : 'Hit';
-                case 5:
-                    return (dealerValue <= 9) ? 'Double' : 'Hit';
+            switch (getCardValue(card)) {
+                case 2:
+                case 3:
+                    return (dealerValue >= 2 && dealerValue <= 7) ? 'Split' : 'Hit';
                 case 4:
                     return (dealerValue === 5 || dealerValue === 6) ? 'Split' : 'Hit';
-                default:
-                    return 'Hit';
+                case 5:
+                    return (dealerValue <= 9) ? 'Double' : 'Hit';
+                case 6:
+                    return (dealerValue <= 6) ? 'Split' : 'Hit';
+                case 7:
+                    return (dealerValue <= 7) ? 'Split' : 'Hit';
+                case 8:
+                    return 'Split';
+                case 9:
+                    return (dealerValue === 7 || dealerValue === 10 || dealerValue === 11) ? 'Stand' : 'Split';
+                case 10:
+                    return 'Stand';
+                case 11:
+                    return 'Split';
             }
         }
 
@@ -183,7 +184,6 @@
             localStorage.setItem('progress', JSON.stringify(progress));
         }
 
-        // Initialize the first hand
         setNewCards();
     </script>
 </body>
