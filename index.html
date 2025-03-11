@@ -3,131 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blackjack Strategy Trainer</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 10px;
-            background-color: #2c3e50;
-            color: white;
-        }
-        
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            gap: 2px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .cell {
-            background-color: #34495e;
-            padding: 10px;
-            text-align: center;
-            font-size: 12px;
-            min-height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border-radius: 3px;
-        }
-
-        .correct { background-color: #27ae60; }
-        .incorrect { background-color: #c0392b; }
-        .progress-bar {
-            width: 100%;
-            height: 20px;
-            background-color: #34495e;
-            margin: 10px 0;
-            border-radius: 10px;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background-color: #2980b9;
-            border-radius: 10px;
-            transition: width 0.3s ease;
-        }
-    </style>
+    <title>Blackjack Basic Strategy Trainer</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h2>Blackjack Strategy Trainer</h2>
-    <div>Progress: <span id="score">0</span>/<span id="total">0</span></div>
-    <div class="progress-bar">
-        <div class="progress-fill" id="progress"></div>
-    </div>
-    <div class="grid-container" id="grid"></div>
-
-    <script>
-        // Basic strategy data (simplified example)
-        const strategy = {
-            // Player Total: { Dealer Up Card: 'action' }
-            '5-8': { '2-11': 'H' },
-            '9': { '2-6': 'D', '7-11': 'H' },
-            '10': { '2-9': 'D', '10-11': 'H' },
-            '11': { '2-11': 'D' },
-            '12': { '2-3': 'H', '4-6': 'S', '7-11': 'H' },
-            // Add full strategy chart here
-        };
-
-        let progress = JSON.parse(localStorage.getItem('bjProgress')) || {};
-        
-        function buildGrid() {
-            const grid = document.getElementById('grid');
-            // Add dealer up cards header
-            for(let i=2; i<=11; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                cell.textContent = i === 11 ? 'A' : i;
-                grid.appendChild(cell);
-            }
-            // Add player hands and strategy
-            Object.keys(strategy).forEach(hand => {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                cell.textContent = hand;
-                grid.appendChild(cell);
-                
-                Object.keys(strategy[hand]).forEach(dealer => {
-                    const actionCell = document.createElement('div');
-                    actionCell.className = `cell ${progress[hand+dealer] || ''}`;
-                    actionCell.textContent = strategy[hand][dealer];
-                    actionCell.onclick = () => handleAnswer(hand, dealer, actionCell);
-                    grid.appendChild(actionCell);
-                });
-            });
-            
-            updateProgress();
-        }
-
-        function handleAnswer(hand, dealer, cell) {
-            const correct = cell.textContent;
-            const userAnswer = prompt(`Dealer: ${dealer}\nYour hand: ${hand}\nAction? (H/S/D/P)`).toUpperCase();
-            
-            if(userAnswer === correct) {
-                cell.classList.add('correct');
-                progress[hand+dealer] = 'correct';
-            } else {
-                cell.classList.add('incorrect');
-                progress[hand+dealer] = 'incorrect';
-            }
-            
-            localStorage.setItem('bjProgress', JSON.stringify(progress));
-            updateProgress();
-        }
-
-        function updateProgress() {
-            const total = document.querySelectorAll('.cell:not(:first-child)').length;
-            const correct = Object.values(progress).filter(v => v === 'correct').length;
-            
-            document.getElementById('score').textContent = correct;
-            document.getElementById('total').textContent = total;
-            document.getElementById('progress').style.width = 
-                `${(correct/total*100 || 0)}%`;
-        }
-
-        buildGrid();
-    </script>
+    <main>
+        <h1>Blackjack Basic Strategy Drills</h1>
+        <div id="hand-display">
+            <!-- Example blackjack hand display -->
+            <p id="player-hand">Player Hand: 8, A</p>
+            <p id="dealer-card">Dealer's Card: 9</p>
+        </div>
+        <div id="options">
+            <button onclick="selectAction('Hit')">Hit</button>
+            <button onclick="selectAction('Stand')">Stand</button>
+            <button onclick="selectAction('Double')">Double</button>
+            <button onclick="selectAction('Split')">Split</button>
+            <button onclick="selectAction('Surrender')">Surrender</button>
+        </div>
+        <p id="feedback"></p>
+    </main>
+    <script src="script.js"></script>
 </body>
 </html>
