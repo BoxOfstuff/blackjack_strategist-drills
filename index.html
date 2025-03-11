@@ -3,16 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blackjack Basic Strategy Trainer</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Blackjack Strategy Trainer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+        }
+        
+        main {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+        
+        #options {
+            margin-top: 20px;
+        }
+        
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: white;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #feedback {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
     <main>
-        <h1>Blackjack Basic Strategy Drills</h1>
+        <h1>Blackjack Basic Strategy Trainer</h1>
         <div id="hand-display">
-            <!-- Example blackjack hand display -->
-            <p id="player-hand">Player Hand: 8, A</p>
-            <p id="dealer-card">Dealer's Card: 9</p>
+            <p id="player-hand">Player Hand: -</p>
+            <p id="dealer-card">Dealer's Card: -</p>
         </div>
         <div id="options">
             <button onclick="selectAction('Hit')">Hit</button>
@@ -23,6 +68,88 @@
         </div>
         <p id="feedback"></p>
     </main>
-    <script src="script.js"></script>
+    <script>
+        let actions = ['Hit', 'Stand', 'Double', 'Split', 'Surrender'];
+        let currentPlayerHand;
+        let currentDealerCard;
+        let correctAction;
+        let selectedAlready = false;
+
+        const simpleBasicStrategy = {
+            '5-8': 'Hit',
+            '9': 'Double',
+            '10-11': 'Double',
+            '12-16': 'Stand',
+            '17-21': 'Stand'
+        };
+
+        function generateRandomCard() {
+            const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+            return ranks[Math.floor(Math.random() * ranks.length)];
+        }
+
+        function getCardValue(card) {
+            if (['J', 'Q', 'K'].includes(card)) return 10;
+            if (card === 'A') return 11;
+            return parseInt(card);
+        }
+
+        function getRandomHand() {
+            return generateRandomCard() + ', ' + generateRandomCard();
+        }
+
+        function setNewCards() {
+            currentPlayerHand = getRandomHand();
+            currentDealerCard = generateRandomCard();
+            document.getElementById('player-hand').textContent = `Player Hand: ${currentPlayerHand}`;
+            document.getElementById('dealer-card').textContent = `Dealer's Card: ${currentDealerCard}`;
+            correctAction = determineCorrectAction(currentPlayerHand, currentDealerCard);
+            selectedAlready = false;
+        }
+
+        function determineCorrectAction(playerHand, dealerCard) {
+            // Simplified example logic for determining correct action
+            // Compute player hand value
+            const cards = playerHand.split(', ');
+            let totalValue = cards.reduce((acc, card) => acc + getCardValue(card), 0);
+
+            // Look up the value in the strategy chart
+            let correct = 'Hit';  // default to Hit if not handled explicitly
+            if (totalValue <= 8) correct = 'Hit';
+            if (totalValue === 9 && getCardValue(dealerCard) >= 3 && getCardValue(dealerCard) <= 6) correct = 'Double';
+            if ([10, 11].includes(totalValue)) correct = 'Double';
+            if (totalValue >= 12 && totalValue <= 16 && getCardValue(dealerCard) >= 2 && getCardValue(dealerCard) <= 6) correct = 'Stand';
+            if (totalValue >= 17) correct = 'Stand';
+
+            return correct;
+        }
+
+        function selectAction(action) {
+            let feedbackElement = document.getElementById('feedback');
+            if (!selectedAlready) {
+                selectedAlready = true;
+                if (action === correctAction) {
+                    feedbackElement.textContent = 'Correct!';
+                } else {
+                    feedbackElement.textContent = `Incorrect! Correct answer: ${correctAction}`;
+                }
+
+                updateProgress(action === correctAction);
+                setTimeout(setNewCards, 2000); // Change cards after 2 seconds
+            }
+        }
+
+        function updateProgress(correct) {
+            let progress = JSON.parse(localStorage.getItem('progress')) || { total: 0, correct: 0 };
+            progress.total += 1;
+            if (correct) {
+                progress.correct += 1;
+            }
+            localStorage.setItem('progress', JSON.stringify(progress));
+        }
+
+        // Initialize the first hand
+        setNewCards();
+    </script>
 </body>
 </html>
